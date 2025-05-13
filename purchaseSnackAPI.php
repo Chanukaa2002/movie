@@ -1,37 +1,31 @@
 <?php
-// Include database connection
 include('connect.php');
-
-// Set the header to return JSON
 header('Content-Type: application/json');
 
-// Check if the request method is POST
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get POST data
-    $uid = isset($_POST['uid']) ? $_POST['uid'] : null;
-    $snackid = isset($_POST['snackid']) ? $_POST['snackid'] : null;
-    $snackname = isset($_POST['snackname']) ? $_POST['snackname'] : null;
-    $totalprice = isset($_POST['totalprice']) ? $_POST['totalprice'] : null;
-    $paymentmethod = isset($_POST['paymentmethod']) ? $_POST['paymentmethod'] : null;
-    $quantity = isset($_POST['quantity']) ? $_POST['quantity'] : null;
+// Allow CORS (for development only)
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type");
 
-    // Validate data
-    if (empty($uid) || empty($snackid) || empty($snackname) || empty($totalprice) || empty($paymentmethod) || empty($quantity)) {
-        echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
-        exit();
-    }
+$data = json_decode(file_get_contents("php://input"), true);
 
-    // SQL Query to insert purchase record into the database
+$uid = $data['userid'] ?? '';
+$snackid = $data['snackid'] ?? '';
+$snackname = $data['snackname'] ?? '';
+$totalprice = $data['totalPrice'] ?? '';
+$paymentmethod = $data['paymentMethod'] ?? '';
+$quantity = $data['quantity'] ?? '';
+
+if ($uid && $snackid && $snackname && $totalprice && $paymentmethod && $quantity) {
     $sql = "INSERT INTO purchases (userid, snackid, snackname, totalprice, paymentmethod, quantity) 
             VALUES ('$uid', '$snackid', '$snackname', '$totalprice', '$paymentmethod', '$quantity')";
 
-    // Execute the query
     if (mysqli_query($con, $sql)) {
-        echo json_encode(['status' => 'success', 'message' => 'Purchase successfully recorded']);
+        echo json_encode(['status' => true, 'message' => 'Purchase successful']);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Error: ' . mysqli_error($con)]);
+        echo json_encode(['status' => false, 'message' => mysqli_error($con)]);
     }
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
+    echo json_encode(['status' => false, 'message' => 'Invalid data']);
 }
 ?>
